@@ -1,18 +1,20 @@
-if (typeof module !== 'undefined') {
-  var assert = require('assert');
-  var sinon = require('sinon');
-  var faker = require('../index');
+if (typeof module !== "undefined") {
+  var assert = require("assert");
+  var sinon = require("sinon");
+  var faker = require("../index");
 }
 
 describe("fake.js", function () {
   describe("fake()", function () {
     it("replaces a token with a random value for a method with no parameters", function () {
-      var name = faker.fake('{{phone.phoneNumber}}');
+      var name = faker.fake("{{phone.phoneNumber}}");
       assert.ok(name.match(/\d/));
     });
 
     it("replaces multiple tokens with random values for methods with no parameters", function () {
-      var name = faker.fake('{{helpers.randomize}}{{helpers.randomize}}{{helpers.randomize}}');
+      var name = faker.fake(
+        "{{helpers.randomize}}{{helpers.randomize}}{{helpers.randomize}}"
+      );
       assert.ok(name.match(/[abc]{3}/));
     });
 
@@ -30,22 +32,48 @@ describe("fake.js", function () {
 
     it("does not allow undefined parameters", function () {
       assert.throws(function () {
-        faker.fake()
+        faker.fake();
       }, Error);
     });
 
     it("does not allow invalid module name", function () {
       assert.throws(function () {
-        faker.fake('{{foo.bar}}')
+        faker.fake("{{foo.bar}}");
       }, Error);
     });
 
     it("does not allow invalid method name", function () {
       assert.throws(function () {
-        faker.fake('{{address.foo}}')
+        faker.fake("{{address.foo}}");
       }, Error);
     });
 
-
+    it("replaces a token using unique method", function () {
+      var options = [];
+      var first = faker.fake(
+        '{{unique.helpers.randomize(["one", "two", "three"])}}'
+      );
+      assert.ok(!options.includes(first));
+      options.push(first);
+      var second = faker.fake(
+        '{{unique.helpers.randomize(["one", "two", "three"])}}'
+      );
+      assert.ok(!options.includes(second));
+      options.push(second);
+      var third = faker.fake(
+        '{{unique.helpers.randomize(["one", "two", "three"])}}'
+      );
+      assert.ok(!options.includes(third));
+      options.push(third);
+      assert.throws(
+        function () {
+          faker.fake('{{unique.helpers.randomize(["one", "two", "three"])}}');
+        },
+        {
+          message:
+            /May not be able to generate any more unique values with current settings/,
+        }
+      );
+    });
   });
 });
